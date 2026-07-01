@@ -28,9 +28,10 @@ def redirect_message():
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
+    # Welcome message updated to Thai for local users
     welcome_text = (
-        "🤖 **AI Assistant Bot**\n\n"
-        "Send me any text prompt or question, and I will generate a response for you instantly using native processing."
+        "🤖 **ยินดีต้อนรับสู่บอทผู้ช่วย AI!**\n\n"
+        "ส่งคำถาม หัวข้อ หรือข้อความอะไรก็ได้มาให้ฉัน แล้วฉันจะสร้างคำตอบคุณภาพสูงให้คุณทันที"
     )
     bot.reply_to(message, welcome_text, parse_mode='Markdown')
 
@@ -41,14 +42,15 @@ def handle_ai_request(message):
     
     bot.send_chat_action(chat_id, 'typing')
     
-    # Direct internal API call - no external client libraries needed
+    # Direct internal API call
     api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={AI_API_KEY}"
     payload = {
         "contents": [{
             "parts": [{"text": user_prompt}]
         }],
+        # Updated system instruction to force Thai outputs and formatting
         "systemInstruction": {
-            "parts": [{"text": "You are a helpful, concise AI Telegram assistant. Keep your responses engaging and format them neatly using Markdown."}]
+            "parts": [{"text": "You are a helpful, concise AI Telegram assistant. You must always respond in fluent, natural Thai. Keep your responses engaging and format them neatly using Markdown."}]
         },
         "generationConfig": {
             "maxOutputTokens": 800
@@ -56,6 +58,7 @@ def handle_ai_request(message):
     }
     
     try:
+        # Utilizing standard requests to communicate directly
         response = requests.post(api_url, json=payload, timeout=15)
         response_data = response.json()
         
@@ -65,7 +68,7 @@ def handle_ai_request(message):
         
     except Exception as e:
         logger.error(f"Error processing AI request: {e}")
-        bot.reply_to(message, "⚠️ System is busy. Please try sending your message again.")
+        bot.reply_to(message, "⚠️ ระบบขัดข้องชั่วคราว กรุณาลองส่งข้อความใหม่อีกครั้ง")
 
 @app.route('/')
 def index():
